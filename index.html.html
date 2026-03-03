@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LULU NEWS · next‑gen premium</title>
+  <!-- font & icons (modern, clean) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    /* ========== style.css ========== */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --glass-bg: rgba(255,255,255,0.12);
+      --glass-border: rgba(255,255,255,0.15);
+      --shadow-soft: 0 15px 40px -12px rgba(0,0,0,0.25);
+      --gradient-1: linear-gradient(145deg, #d4b8ff, #a0d0ff);
+      --gradient-accent: linear-gradient(125deg, #ff7eb3, #7b68ee, #42e2b8);
+      --bg-light: #f0f3fa;
+      --bg-dark: #0b0c14;
+      --card-light: rgba(255,255,255,0.75);
+      --card-dark: rgba(20,22,35,0.85);
+      --text-light: #1a1e2b;
+      --text-dark: #f0f3fd;
+      --nav-blur: blur(18px);
+      --transition: 0.3s cubic-bezier(0.2, 0.9, 0.3, 1);
+      --sidebar-width: 280px;
+    }
+    body.light { background: var(--bg-light); color: #121212; }
+    body.dark { background: var(--bg-dark); color: #eee; }
+    body { font-family: "Inter", sans-serif; transition: background 0.4s, color 0.3s; line-height: 1.5; }
+
+    /* --- glassmorphism base --- */
+    .glass, .navbar, .card, .modal-content, .premium-badge, .news-ticker {
+      backdrop-filter: blur(16px) saturate(180%);
+      -webkit-backdrop-filter: blur(16px) saturate(180%);
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      box-shadow: var(--shadow-soft);
+    }
+    body.dark .glass, body.dark .navbar, body.dark .card { background: rgba(15, 18, 30, 0.7); }
+
+    /* layout */
+    .container { max-width: 1440px; margin: 0 auto; padding: 0 1.5rem; }
+    .grid-2, .grid-4, .grid-3 { display: grid; gap: 1.8rem; }
+    .grid-4 { grid-template-columns: repeat(4,1fr); }
+    .grid-3 { grid-template-columns: repeat(3,1fr); }
+    .grid-2 { grid-template-columns: 1fr 1fr; }
+
+    /* --- preloader --- */
+    #preloader {
+      position: fixed; inset: 0; background: #0f0f17; z-index: 9999;
+      display: flex; align-items: center; justify-content: center;
+      transition: opacity 0.5s, visibility 0.5s;
+    }
+    .loader { width: 70px; aspect-ratio: 1; background: conic-gradient(from 0deg, #ff7eb3, #7b68ee, #42e2b8, #ff7eb3); border-radius: 50%; animation: spin 0.8s infinite linear; mask: radial-gradient(circle, transparent 55%, black 56%); }
+    @keyframes spin { to { transform: rotate(1turn); } }
+
+    /* --- navbar sticky + animated --- */
+    .navbar {
+      position: sticky; top: 1rem; z-index: 100; margin: 1rem 2rem; border-radius: 80px;
+      padding: 0.8rem 2rem; display: flex; justify-content: space-between; align-items: center;
+      transition: all 0.3s, transform 0.2s, background 0.5s; transform: translateY(0);
+    }
+    .navbar.nav-scrolled { top: 0; border-radius: 0 0 30px 30px; margin: 0; padding: 0.7rem 2.5rem; background: rgba(255,255,255,0.2); box-shadow: 0 12px 30px rgba(0,0,0,0.1); }
+    body.dark .navbar.nav-scrolled { background: rgba(10,10,22,0.8); }
+    .nav-links a { margin: 0 1.2rem; text-decoration: none; font-weight: 500; position: relative; color: inherit; }
+    .nav-links a::after { content: ''; position: absolute; bottom: -6px; left: 0; width: 0; height: 2.5px; background: linear-gradient(90deg, #ff7eb3, #7b68ee); transition: width 0.25s; border-radius: 2px; }
+    .nav-links a:hover::after { width: 100%; }
+
+    /* --- dark/light toggle --- */
+    .theme-toggle { background: none; border: none; font-size: 1.5rem; cursor: pointer; border-radius: 40px; padding: 0.2rem 0.8rem; backdrop-filter: blur(4px); }
+
+    /* --- hero slider animated --- */
+    .hero-slider { position: relative; border-radius: 40px; overflow: hidden; margin: 2rem 0; height: 500px; }
+    .slide { position: absolute; inset: 0; opacity: 0; transition: opacity 1s ease; background-size: cover; background-position: center; display: flex; align-items: flex-end; padding: 3rem; }
+    .slide.active { opacity: 1; z-index: 5; }
+    .slide-content { background: rgba(0,0,0,0.42); backdrop-filter: blur(12px); padding: 2rem; border-radius: 24px; max-width: 600px; border: 1px solid rgba(255,255,255,0.2); animation: fadeUp 0.8s; }
+
+    /* --- ticker (breaking) --- */
+    .news-ticker { border-radius: 60px; padding: 0.9rem 2rem; margin: 1.5rem 0; display: flex; align-items: center; gap: 1.2rem; overflow: hidden; white-space: nowrap; }
+    .ticker-items { display: inline-block; animation: tickerMove 25s linear infinite; }
+    .ticker-items span { margin-right: 3rem; font-weight: 600; }
+    @keyframes tickerMove { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+
+    /* cards */
+    .card { border-radius: 32px; padding: 1.8rem; transition: transform 0.25s, box-shadow 0.3s; overflow: hidden; position: relative; }
+    .card:hover { transform: translateY(-12px) scale(1.01); box-shadow: 0 30px 40px -15px rgba(0,0,0,0.4); }
+    .card img { width: 100%; border-radius: 20px; aspect-ratio: 16/9; object-fit: cover; transition: transform 0.4s; }
+    .card:hover img { transform: scale(1.06); }
+    .zoom-effect { overflow: hidden; border-radius: 20px; }
+
+    /* button ripple */
+    .ripple-btn { position: relative; overflow: hidden; border: none; background: linear-gradient(145deg, #7b68ee, #a0d0ff); color: white; padding: 0.7rem 1.8rem; border-radius: 40px; cursor: pointer; transition: 0.2s; }
+    .ripple-btn::after { content: ''; position: absolute; width: 100%; height: 100%; background: rgba(255,255,255,0.3); top: 0; left: -100%; transition: left 0.2s; border-radius: 40px; }
+    .ripple-btn:hover::after { left: 0; }
+
+    /* reading progress */
+    #progress-bar { position: fixed; top: 0; left: 0; height: 4px; width: 0%; background: linear-gradient(90deg, #ff7eb3, #7b68ee, #42e2b8); z-index: 999; transition: width 0.1s; }
+
+    /* category badges counter */
+    .category-badge { background: rgba(255,255,255,0.2); backdrop-filter: blur(4px); padding: 0.2rem 1rem; border-radius: 40px; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 6px; border: 1px solid rgba(255,255,255,0.3); }
+
+    /* modal (login/signup) */
+    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(6px); align-items: center; justify-content: center; z-index: 1000; }
+    .modal-content { max-width: 400px; width: 90%; border-radius: 48px; padding: 2.5rem; animation: scaleIn 0.3s; }
+
+    /* scroll reveal fade */
+    .fade-up { opacity: 0; transform: translateY(25px); transition: 0.7s; }
+    .fade-up.revealed { opacity: 1; transform: translateY(0); }
+
+    /* responsive */
+    @media (max-width: 900px) { .grid-4 { grid-template-columns: repeat(2,1fr); } .grid-3 { grid-template-columns: repeat(2,1fr); } .grid-2 { grid-template-columns: 1fr; } }
+    @media (max-width: 600px) { .grid-4, .grid-3 { grid-template-columns: 1fr; } .hero-slider { height: 380px; } }
+
+    /* animations */
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes scaleIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+    /* premium glassmorphism extras */
+    .gradient-bg { background: var(--gradient-accent); padding: 2px; border-radius: 40px; }
+    .sticky-sidebar { position: sticky; top: 100px; }
+    .bookmark-icon { cursor: pointer; color: #ffb347; }
+    .comment-box { background: rgba(0,0,0,0.1); border-radius: 30px; padding: 1rem; margin-top: 1.5rem; }
+    footer a { color: inherit; margin: 0 0.7rem; }
+  </style>
+</head>
+<body class="dark">
+  <!-- preloader -->
+  <div id="preloader"><div class="loader"></div></div>
+  <!-- reading progress bar -->
+  <div id="progress-bar"></div>
+
+  <!-- sticky navbar -->
+  <nav class="navbar glass" id="navbar">
+    <div class="logo" style="font-weight: 700; font-size: 1.8rem; letter-spacing: -1px;">LULU<span style="font-weight:300;"> NEWS</span></div>
+    <div class="nav-links">
+      <a href="#">Home</a><a href="#">World</a><a href="#">Tech</a><a href="#">Sports</a><a href="#">Premium</a>
+    </div>
+    <div style="display: flex; gap: 12px;">
+      <i class="fas fa-search" style="cursor: pointer;" id="searchIcon"></i>
+      <button class="theme-toggle" id="themeToggle"><i class="fas fa-moon"></i></button>
+      <i class="fas fa-user" style="cursor: pointer;" id="loginModalBtn"></i>
+    </div>
+  </nav>
+
+  <div class="container">
+    <!-- date & time -->
+    <div style="display: flex; justify-content: space-between; margin: 1rem 0 0.5rem;"><span id="liveTime"></span><span class="category-badge"><i class="fas fa-fire"></i> 24k trending</span></div>
+
+    <!-- hero slider -->
+    <section class="hero-slider glass" id="heroSlider">
+      <div class="slide active" style="background-image: url('https://picsum.photos/1400/600?random=1')"><div class="slide-content"><h2>AI revolution reshapes global politics</h2><p>Live: unprecedented summit • LULU exclusive</p></div></div>
+      <div class="slide" style="background-image: url('https://picsum.photos/1400/600?random=2')"><div class="slide-content"><h2>Space mission breaks new record</h2><p>Mars samples return earlier than expected</p></div></div>
+      <div class="slide" style="background-image: url('https://picsum.photos/1400/600?random=3')"><div class="slide-content"><h2>Eco‑tech: future is now</h2><p>carbon negative concrete revealed</p></div></div>
+    </section>
+
+    <!-- breaking ticker -->
+    <div class="news-ticker glass"><i class="fas fa-bolt" style="color:#ffb347;"></i><div class="ticker-items"><span>BREAKING: Market hits all-time high</span><span>⚡ New cyber policy announced</span><span>🏆 Champions league final set</span><span>📱 LULU launches interactive app</span><span>🌍 Climate pact signed</span></div></div>
+
+    <!-- grid sections -->
+    <section class="grid-4" style="margin: 3rem 0;">
+      <div class="card fade-up"><div class="zoom-effect"><img src="https://picsum.photos/400/250?random=10" loading="lazy"></div><h3>World turmoil</h3><p>Diplomatic shift in Asia</p><span class="category-badge">world  • 2min</span></div>
+      <div class="card fade-up"><div class="zoom-effect"><img src="https://picsum.photos/400/250?random=11" loading="lazy"></div><h3>Election 2025</h3><p>New candidates emerge</p><span class="category-badge">politics</span></div>
+      <div class="card fade-up"><div class="zoom-effect"><img src="https://picsum.photos/400/250?random=12" loading="lazy"></div><h3>Wall street</h3><p>Tech leads rally</p><span class="category-badge">business +5</span></div>
+      <div class="card fade-up"><div class="zoom-effect"><img src="https://picsum.photos/400/250?random=13" loading="lazy"></div><h3>Quantum leap</h3><p>New processor</p><span class="category-badge">technology</span></div>
+    </section>
+
+    <!-- featured banner + category filter -->
+    <section class="gradient-bg" style="margin: 2rem 0; border-radius: 48px;"><div class="card" style="background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: space-between;"><div><h2 style="font-size: 2.5rem;">Exclusive: Web3 meets journalism</h2><button class="ripple-btn" onclick="alert('premium content preview')">Read feature →</button></div><img src="https://picsum.photos/300/200?random=99" style="width:200px; border-radius: 30px;"></div></section>
+
+    <!-- category filter & cards -->
+    <div style="display: flex; gap:10px; flex-wrap: wrap; margin: 2rem 0;" id="categoryFilters">
+      <span class="category-badge" data-cat="all">all (12)</span><span class="category-badge" data-cat="world">world (4)</span><span class="category-badge" data-cat="tech">technology (3)</span><span class="category-badge" data-cat="sports">sports (5)</span>
+    </div>
+    <div class="grid-3" id="categoryGrid">
+      <!-- dynamic cards injected but static fallback -->
+    </div>
+
+    <!-- video news section -->
+    <h2 style="margin: 2rem 0 1rem;"><i class="fas fa-play-circle"></i> Video news</h2>
+    <div class="grid-3">
+      <div class="card"><img src="https://picsum.photos/400/250?random=21"><i class="fas fa-play" style="font-size:2rem;"></i> <p>Studio interview</p></div>
+      <div class="card"><img src="https://picsum.photos/400/250?random=22"><i class="fas fa-play"></i> <p>Documentary</p></div>
+      <div class="card"><img src="https://picsum.photos/400/250?random=23"><i class="fas fa-play"></i> <p>Live now</p></div>
+    </div>
+
+    <!-- newsletter + sticky sidebar example -->
+    <div class="grid-2">
+      <div class="card fade-up"><h3>✉️ 7am briefing</h3><input type="email" placeholder="your.email@domain.com" style="width:100%; padding:1rem; border-radius:60px; border:0; background:rgba(255,255,255,0.2);"><button class="ripple-btn" style="margin-top:1rem;">subscribe</button></div>
+      <div class="card sticky-sidebar fade-up"><h3>📈 trending</h3><ul><li>🔹 AI breakthroughs</li><li>🔹 Climate summit</li><li>🔹 LULU originals</li></ul></div>
+    </div>
+    <!-- comment section preview (localStorage based) -->
+    <div class="comment-box glass"><h4>comments (local)</h4><div id="commentList"></div><input id="commentInput" placeholder="write a thought..." style="width:70%; padding:0.5rem;"><button id="addCommentBtn" class="ripple-btn">post</button></div>
+
+    <!-- footer -->
+    <footer class="glass" style="border-radius: 80px 80px 20px 20px; padding: 2.5rem; margin: 4rem 0 2rem;">
+      <div class="grid-4"><div><i class="fab fa-facebook"></i> <i class="fab fa-x-twitter"></i> <i class="fab fa-whatsapp"></i> </div><div>about</div><div>premium</div><div>contact</div></div>
+      <hr style="margin: 2rem 0; opacity:0.2;"><p style="text-align:center;">© 2025 LULU NEWS – futuristic storytelling</p>
+    </footer>
+  </div>
+
+  <!-- login modal -->
+  <div id="loginModal" class="modal"><div class="modal-content"><h2>welcome back</h2><input placeholder="email"><input type="password" placeholder="******"><button class="ripple-btn" style="margin:1rem 0;">sign in</button><p>new? <a href="#">join premium</a></p></div></div>
+
+  <!-- admin / add article panel layout (simple) -->
+  <div style="position:fixed; bottom:20px; right:20px; background: rgba(255,255,255,0.15); backdrop-filter:blur(20px); border-radius:40px; padding:1rem;"><i class="fas fa-pen" id="adminToggle"></i><div id="adminPanel" style="display:none;"><input id="newTitle" placeholder="title"><input id="newCat" placeholder="category"><button id="addArticleBtn">+ add article</button></div></div>
+
+  <!-- script.js -->
+  <script>
+    (function() {
+      // preloader
+      window.addEventListener('load', () => { document.getElementById('preloader').style.opacity = '0'; setTimeout(()=>document.getElementById('preloader').style.display='none',500); });
+
+      // reading progress
+      window.addEventListener('scroll', ()=> { let winScroll = window.scrollY, height = document.documentElement.scrollHeight - window.innerHeight, scrolled = (winScroll/height)*100; document.getElementById('progress-bar').style.width = scrolled+'%'; });
+
+      // dark/light toggle
+      const themeToggle = document.getElementById('themeToggle');
+      themeToggle.addEventListener('click', ()=> { document.body.classList.toggle('dark'); document.body.classList.toggle('light'); themeToggle.innerHTML = document.body.classList.contains('dark') ? '<i class="fas fa-moon"></i>' : '<i class="fas fa-sun"></i>'; localStorage.setItem('theme', document.body.className); });
+      if(localStorage.getItem('theme')) document.body.className = localStorage.getItem('theme');
+
+      // navbar animation on scroll
+      const navbar = document.getElementById('navbar');
+      window.addEventListener('scroll', ()=> { if(window.scrollY>50) navbar.classList.add('nav-scrolled'); else navbar.classList.remove('nav-scrolled'); });
+
+      // live time
+      function updateTime() { document.getElementById('liveTime').innerText = new Date().toLocaleString('en-US',{ weekday:'short', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }); } setInterval(updateTime,1000); updateTime();
+
+      // hero slider
+      let slides = document.querySelectorAll('.slide'), current = 0;
+      setInterval(()=> { slides[current].classList.remove('active'); current = (current+1) % slides.length; slides[current].classList.add('active'); }, 5000);
+
+      // search modal
+      document.getElementById('searchIcon').addEventListener('click', ()=> { alert('Search panel (dynamic) – premium concept'); });
+
+      // login modal
+      const modal = document.getElementById('loginModal');
+      document.getElementById('loginModalBtn').addEventListener('click', ()=> modal.style.display = 'flex');
+      window.onclick = (e) => { if(e.target === modal) modal.style.display = 'none'; };
+
+      // bookmark & localStorage demo (comment)
+      let comments = JSON.parse(localStorage.getItem('comments')) || [];
+      function renderComments() { let html = ''; comments.forEach(c=>{ html += `<p><i class="fas fa-user"></i> ${c}</p>`; }); document.getElementById('commentList').innerHTML = html; }
+      document.getElementById('addCommentBtn').addEventListener('click', ()=> { let inp = document.getElementById('commentInput'); if(inp.value.trim()) { comments.push(inp.value); localStorage.setItem('comments', JSON.stringify(comments)); renderComments(); inp.value=''; } });
+      renderComments();
+
+      // category filter dummy data + cards
+      const catGrid = document.getElementById('categoryGrid');
+      let articles = [
+        { title:'Tensions rise', cat:'world', img:'https://picsum.photos/400/250?random=31' },
+        { title:'Tech IPO', cat:'business', img:'https://picsum.photos/400/250?random=32' },
+        { title:'5G evolution', cat:'tech', img:'https://picsum.photos/400/250?random=33' },
+        { title:'Champions', cat:'sports', img:'https://picsum.photos/400/250?random=34' },
+        { title:'Election poll', cat:'politics', img:'https://picsum.photos/400/250?random=35' },
+        { title:'Movie awards', cat:'entertainment', img:'https://picsum.photos/400/250?random=36' }
+      ];
+      function renderCategory(filter='all') {
+        let filtered = filter==='all' ? articles : articles.filter(a=>a.cat===filter);
+        catGrid.innerHTML = filtered.map(a=> `<div class="card fade-up revealed"><div class="zoom-effect"><img src="${a.img}" loading="lazy"></div><h4>${a.title}</h4><span class="category-badge">${a.cat}</span><i class="fas fa-bookmark bookmark-icon" onclick="alert('saved to localStorage (mock)')"></i></div>`).join('');
+      }
+      renderCategory();
+      document.querySelectorAll('[data-cat]').forEach(badge=> badge.addEventListener('click', (e)=> renderCategory(e.target.dataset.cat)));
+
+      // add new article (admin panel dynamic)
+      document.getElementById('adminToggle').addEventListener('click', ()=> { document.getElementById('adminPanel').style.display = document.getElementById('adminPanel').style.display==='none'?'block':'none'; });
+      document.getElementById('addArticleBtn').addEventListener('click', ()=> { let title = document.getElementById('newTitle').value, cat = document.getElementById('newCat').value; if(title && cat) { articles.push({ title, cat, img:'https://picsum.photos/400/250?random='+Date.now() }); renderCategory('all'); } });
+
+      // scroll reveal (simple)
+      const faders = document.querySelectorAll('.fade-up');
+      const observer = new IntersectionObserver(entries => entries.forEach(e=> { if(e.isIntersecting) e.target.classList.add('revealed'); }), { threshold:0.2 });
+      faders.forEach(f=> observer.observe(f));
+
+      // ripple button effect extension
+      document.querySelectorAll('.ripple-btn').forEach(b=> b.addEventListener('click', function(e){ let x = e.clientX - e.target.offsetLeft, y = e.clientY - e.target.offsetTop; let ripple = document.createElement('span'); ripple.style.cssText = `position:absolute; width:20px; height:20px; background:white; border-radius:50%; opacity:0.5; transform:translate(-50%,-50%); left:${x}px; top:${y}px; animation:scaleIn 0.4s;`; this.appendChild(ripple); setTimeout(()=>ripple.remove(),400); }));
+
+      // bookmark / share simulation
+      console.log('LULU NEWS – premium fullstack prototype');
+    })();
+  </script>
+</body>
+</html>
